@@ -1,0 +1,9 @@
+{
+  "name": "nrcmodbot",
+  "version": "1.0.0",
+  "description": "Telegram Welcome Bot",
+  "main": "index.js",
+  "dependencies": {
+    "node-telegram-bot-api": "^0.64.0"
+  }
+}
