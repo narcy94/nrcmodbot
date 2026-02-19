@@ -19,11 +19,13 @@ bot.on('new_chat_members', async (msg) => {
 
   msg.new_chat_members.forEach(async (user) => {
     await bot.sendMessage(chatId,
-      `🎉 Bienvenido ${user.first_name} a TechnNL Mods 🚀
+      `🎉 Bienvenid@ ${user.first_name} a TechnNL Mods 🚀
 
 📌 Reglas:
 1️⃣ Respeto
-2️⃣ No Spam`,
+2️⃣ No Spam
+3️⃣ No enlaces de otros grupos
+4️⃣ ✅ Preguntar de manera cortés y amable.`,
       {
         reply_markup: {
           inline_keyboard: [
