@@ -21,6 +21,9 @@ if (!process.env.PORT) {
 const PORT = process.env.PORT;
 const TOKEN = process.env.TOKEN;
 
+// 🔹 URL pública Railway
+const PUBLIC_URL = "https://nrcmodbot-production-caf5.up.railway.app";
+
 /* =========================
    🔹 CONFIGURACIÓN
 ========================= */
@@ -31,17 +34,38 @@ const TIMEZONE_OFFSET = -6;
 const bot = new TelegramBot(TOKEN);
 
 /* =========================
-   🔹 WEBHOOK ENDPOINT
+   🔹 CONFIGURAR WEBHOOK
+========================= */
+
+bot.setWebHook(`${PUBLIC_URL}/bot${TOKEN}`)
+  .then(() => console.log("Webhook configurado correctamente"))
+  .catch(err => console.log("Error configurando webhook:", err.message));
+
+/* =========================
+   🔹 ENDPOINT WEBHOOK
 ========================= */
 
 app.post(`/bot${TOKEN}`, (req, res) => {
-  bot.processUpdate(req.body);
-  res.sendStatus(200);
+  try {
+    bot.processUpdate(req.body);
+    res.sendStatus(200);
+  } catch (error) {
+    console.error("Error procesando update:", error);
+    res.sendStatus(500);
+  }
 });
+
+/* =========================
+   🔹 RUTA BASE
+========================= */
 
 app.get('/', (req, res) => {
   res.send('Bot is running');
 });
+
+/* =========================
+   🔹 INICIAR SERVIDOR
+========================= */
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
@@ -63,7 +87,7 @@ function isNightTime() {
 }
 
 /* =========================
-   🎉 BIENVENIDA (WEBHOOK ESTABLE)
+   🎉 BIENVENIDA
 ========================= */
 
 bot.on("new_chat_members", async (msg) => {
