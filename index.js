@@ -2,6 +2,8 @@ const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
 
 const app = express();
+app.use(express.json());
+
 const port = process.env.PORT || 3000;
 
 // 🔹 ID de tu grupo
@@ -10,6 +12,23 @@ const GROUP_ID = -1003262837658;
 // 🔹 Zona horaria Nicaragua (UTC-6)
 const TIMEZONE_OFFSET = -6;
 
+// 🔹 Crear bot SIN polling
+const bot = new TelegramBot(process.env.TOKEN);
+
+// 🔹 Configurar webhook cuando el servidor inicia
+const webhookUrl = process.env.RENDER_EXTERNAL_URL + "/bot" + process.env.TOKEN;
+
+bot.setWebHook(webhookUrl)
+  .then(() => console.log("Webhook configurado"))
+  .catch(err => console.log("Error webhook:", err.message));
+
+// 🔹 Endpoint que recibe actualizaciones de Telegram
+app.post('/bot' + process.env.TOKEN, (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
+});
+
+// 🔹 Ruta base
 app.get('/', (req, res) => {
   res.send('Bot is running');
 });
@@ -18,19 +37,15 @@ app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
 
-const bot = new TelegramBot(process.env.TOKEN, { polling: true });
-
 /* =========================
    🔹 BIENVENIDA
 ========================= */
 
 bot.on('new_chat_members', async (msg) => {
-  const chatId = msg.chat.id;
-
-  if (chatId !== GROUP_ID) return;
+  if (msg.chat.id !== GROUP_ID) return;
 
   msg.new_chat_members.forEach(async (user) => {
-    await bot.sendMessage(chatId,
+    await bot.sendMessage(GROUP_ID,
       `🎉 Bienvenid@ ${user.first_name} a TechnNL Mods 🚀
 
 📌 Reglas:
@@ -72,35 +87,34 @@ function isNightTime() {
   return hour >= 23 || hour < 6;
 }
 
-// 🔹 Anuncio automático cada minuto
 setInterval(async () => {
   const now = getLocalTime();
   const hour = now.getHours();
   const minute = now.getMinutes();
   const today = now.toDateString();
 
-  // 🕚 23:00 exacto
+  // 🕚 23:00
   if (hour === 23 && minute === 0 && lastNightAnnouncement !== today) {
     lastNightAnnouncement = today;
 
     await bot.sendMessage(GROUP_ID,
-`🌒  *MODO NOCHE ACTIVADO*
+`🌒 *MODO NOCHE ACTIVADO*
 
-A partir de este momento el grupo entra en descanso nocturno.
+El grupo entra en descanso nocturno.
 
-⏳ No será posible enviar mensajes hasta las 6:00 AM.
+⏳ No se podrán enviar mensajes hasta las 6:00 AM.
 
 Gracias por tu comprensión.`,
       { parse_mode: "Markdown" }
     );
   }
 
-  // 🕕 06:00 exacto
+  // 🕕 06:00
   if (hour === 6 && minute === 0 && lastMorningAnnouncement !== today) {
     lastMorningAnnouncement = today;
 
     await bot.sendMessage(GROUP_ID,
-`🌅  *FIN MODO NOCHE*
+`🌅 *FIN MODO NOCHE*
 
 ✅ El grupo vuelve a estar activo.
 
@@ -123,7 +137,6 @@ bot.on("message", async (msg) => {
     try {
       const member = await bot.getChatMember(GROUP_ID, msg.from.id);
 
-      // 🔹 No borrar mensajes de admins
       if (member.status === "administrator" || member.status === "creator") {
         return;
       }
