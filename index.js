@@ -1,4 +1,16 @@
 const TelegramBot = require('node-telegram-bot-api');
+const express = require('express');
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+app.get('/', (req, res) => {
+  res.send('Bot is running');
+});
+
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
 
 const bot = new TelegramBot(process.env.TOKEN, { polling: true });
 
@@ -6,14 +18,12 @@ bot.on('new_chat_members', async (msg) => {
   const chatId = msg.chat.id;
 
   msg.new_chat_members.forEach(async (user) => {
-    await bot.sendMessage(chatId, 
+    await bot.sendMessage(chatId,
       `🎉 Bienvenido ${user.first_name} a TechnNL Mods 🚀
 
 📌 Reglas:
 1️⃣ Respeto
-2️⃣ No Spam
-
-Disfruta el grupo.`,
+2️⃣ No Spam`,
       {
         reply_markup: {
           inline_keyboard: [
