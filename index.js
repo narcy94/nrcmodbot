@@ -4,8 +4,19 @@ const express = require('express');
 const app = express();
 app.use(express.json());
 
-// ⚠️ Railway requiere usar EXACTAMENTE process.env.PORT
+// 🔐 Validación obligatoria
+if (!process.env.TOKEN) {
+  console.error("ERROR: TOKEN no definido en variables de entorno");
+  process.exit(1);
+}
+
+if (!process.env.PORT) {
+  console.error("ERROR: PORT no definido");
+  process.exit(1);
+}
+
 const PORT = process.env.PORT;
+const TOKEN = process.env.TOKEN;
 
 // 🔹 ID de tu grupo
 const GROUP_ID = -1003262837658;
@@ -14,13 +25,13 @@ const GROUP_ID = -1003262837658;
 const TIMEZONE_OFFSET = -6;
 
 // 🔹 Crear bot SIN polling
-const bot = new TelegramBot(process.env.TOKEN);
+const bot = new TelegramBot(TOKEN);
 
 /* =========================
    🔹 ENDPOINT WEBHOOK
 ========================= */
 
-app.post(`/bot${process.env.TOKEN}`, (req, res) => {
+app.post(`/bot${TOKEN}`, (req, res) => {
   bot.processUpdate(req.body);
   res.sendStatus(200);
 });
@@ -57,7 +68,7 @@ function isNightTime() {
 }
 
 /* =========================
-   🔹 MENSAJES (BIENVENIDA + BLOQUEO)
+   🔹 MENSAJES
 ========================= */
 
 bot.on("message", async (msg) => {
@@ -66,7 +77,7 @@ bot.on("message", async (msg) => {
   if (msg.chat.id !== GROUP_ID) return;
   if (msg.from?.is_bot) return;
 
-  // 🔹 BIENVENIDA (estable en webhook)
+  // 🔹 BIENVENIDA
   if (msg.new_chat_members) {
     for (const user of msg.new_chat_members) {
       try {
@@ -98,7 +109,7 @@ bot.on("message", async (msg) => {
     return;
   }
 
-  // 🔒 BLOQUEO DURANTE MODO NOCHE
+  // 🔒 BLOQUEO MODO NOCHE
   if (isNightTime()) {
     try {
       const member = await bot.getChatMember(GROUP_ID, msg.from.id);
@@ -132,7 +143,6 @@ setInterval(async () => {
 
   try {
 
-    // 🕚 23:00
     if (hour === 23 && minute === 0 && lastNightAnnouncement !== today) {
       lastNightAnnouncement = today;
 
@@ -148,7 +158,6 @@ Gracias por tu comprensión.`,
       );
     }
 
-    // 🕕 06:00
     if (hour === 6 && minute === 0 && lastMorningAnnouncement !== today) {
       lastMorningAnnouncement = today;
 
