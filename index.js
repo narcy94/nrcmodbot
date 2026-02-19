@@ -12,23 +12,22 @@ const GROUP_ID = -1003262837658;
 // 🔹 Zona horaria Nicaragua (UTC-6)
 const TIMEZONE_OFFSET = -6;
 
-// 🔹 Crear bot SIN polling
+// 🔹 Crear bot (SIN polling, SIN setWebHook aquí)
 const bot = new TelegramBot(process.env.TOKEN);
 
-// 🔹 Configurar webhook cuando el servidor inicia
-const webhookUrl = "https://nrcmodbot.onrender.com/bot" + process.env.TOKEN;
+/* =========================
+   🔹 ENDPOINT WEBHOOK
+========================= */
 
-bot.setWebHook(webhookUrl)
-  .then(() => console.log("Webhook configurado"))
-  .catch(err => console.log("Error webhook:", err.message));
-
-// 🔹 Endpoint que recibe actualizaciones de Telegram
 app.post('/bot' + process.env.TOKEN, (req, res) => {
   bot.processUpdate(req.body);
   res.sendStatus(200);
 });
 
-// 🔹 Ruta base
+/* =========================
+   🔹 RUTA BASE
+========================= */
+
 app.get('/', (req, res) => {
   res.send('Bot is running');
 });
@@ -38,43 +37,8 @@ app.listen(port, () => {
 });
 
 /* =========================
-   🔹 BIENVENIDA
+   🔹 FUNCIONES HORARIO
 ========================= */
-
-bot.on('new_chat_members', async (msg) => {
-  if (msg.chat.id !== GROUP_ID) return;
-
-  msg.new_chat_members.forEach(async (user) => {
-    await bot.sendMessage(GROUP_ID,
-      `🎉 Bienvenid@ ${user.first_name} a TechnNL Mods 🚀
-
-📌 Reglas:
-1️⃣ Respeto
-2️⃣ No Spam
-3️⃣ No enlaces de otros grupos
-4️⃣ ✅ Preguntar de manera cortés y amable.`,
-      {
-        reply_markup: {
-          inline_keyboard: [
-            [
-              {
-                text: "📺 Canal de YouTube",
-                url: "https://youtube.com/@technnl?si=gg9_mkCh00kTDCyA"
-              }
-            ]
-          ]
-        }
-      }
-    );
-  });
-});
-
-/* =========================
-   🌒 MODO NOCHE
-========================= */
-
-let lastNightAnnouncement = null;
-let lastMorningAnnouncement = null;
 
 function getLocalTime() {
   const now = new Date();
@@ -87,7 +51,70 @@ function isNightTime() {
   return hour >= 23 || hour < 6;
 }
 
+/* =========================
+   🔹 MENSAJES (BIENVENIDA + BLOQUEO)
+========================= */
+
+bot.on("message", async (msg) => {
+
+  if (msg.chat.id !== GROUP_ID) return;
+  if (msg.from.is_bot) return;
+
+  // 🔹 BIENVENIDA (más estable en webhook)
+  if (msg.new_chat_members) {
+    msg.new_chat_members.forEach(async (user) => {
+      await bot.sendMessage(GROUP_ID,
+`🎉 Bienvenid@ ${user.first_name} a TechnNL Mods 🚀
+
+📌 Reglas:
+1️⃣ Respeto
+2️⃣ No Spam
+3️⃣ No enlaces de otros grupos
+4️⃣ ✅ Preguntar de manera cortés y amable.`,
+        {
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: "📺 Canal de YouTube",
+                  url: "https://youtube.com/@technnl?si=gg9_mkCh00kTDCyA"
+                }
+              ]
+            ]
+          }
+        }
+      );
+    });
+    return;
+  }
+
+  // 🔒 BLOQUEO DURANTE MODO NOCHE
+  if (isNightTime()) {
+    try {
+      const member = await bot.getChatMember(GROUP_ID, msg.from.id);
+
+      if (member.status === "administrator" || member.status === "creator") {
+        return;
+      }
+
+      await bot.deleteMessage(msg.chat.id, msg.message_id);
+
+    } catch (err) {
+      console.log("Error al borrar mensaje:", err.message);
+    }
+  }
+
+});
+
+/* =========================
+   🌒 MODO NOCHE AUTOMÁTICO
+========================= */
+
+let lastNightAnnouncement = null;
+let lastMorningAnnouncement = null;
+
 setInterval(async () => {
+
   const now = getLocalTime();
   const hour = now.getHours();
   const minute = now.getMinutes();
@@ -124,29 +151,5 @@ Ahora puedes enviar mensajes con normalidad.`,
   }
 
 }, 60000);
-
-/* =========================
-   🔒 BLOQUEO DE MENSAJES
-========================= */
-
-bot.on("message", async (msg) => {
-  if (msg.chat.id !== GROUP_ID) return;
-  if (msg.from.is_bot) return;
-
-  if (isNightTime()) {
-    try {
-      const member = await bot.getChatMember(GROUP_ID, msg.from.id);
-
-      if (member.status === "administrator" || member.status === "creator") {
-        return;
-      }
-
-      await bot.deleteMessage(msg.chat.id, msg.message_id);
-
-    } catch (err) {
-      console.log("Error al borrar mensaje:", err.message);
-    }
-  }
-});
 
 console.log("Bot running...");
