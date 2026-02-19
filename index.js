@@ -16,7 +16,7 @@ const TIMEZONE_OFFSET = -6;
 const bot = new TelegramBot(process.env.TOKEN);
 
 // 🔹 Configurar webhook cuando el servidor inicia
-const webhookUrl = process.env.RENDER_EXTERNAL_URL + "/bot" + process.env.TOKEN;
+const webhookUrl = "https://nrcmodbot.onrender.com/bot" + process.env.TOKEN;
 
 bot.setWebHook(webhookUrl)
   .then(() => console.log("Webhook configurado"))
