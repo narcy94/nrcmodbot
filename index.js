@@ -105,7 +105,8 @@ bot.on("new_chat_members", async (msg) => {
         minute: "2-digit"
       });
 
-      await bot.sendMessage(GROUP_ID,
+      await bot.sendMessage(
+        GROUP_ID,
 `🎉 Bienvenid@ a TechnNL Mods ⚙️
 👤 Nombre : ${user.first_name}
 👤 ID : ${user.id}
@@ -116,9 +117,7 @@ bot.on("new_chat_members", async (msg) => {
 1️⃣ Respeto
 2️⃣ No Spam
 3️⃣ No enlaces de otros grupos
-4️⃣ ✅ Preguntar de manera cortés y amable.
-
-[‎](https://lnk.ua/RVd5836N3)`,
+4️⃣ ✅ Preguntar de manera cortés y amable.[‎](https://files.catbox.moe/5fk3q2.jpg)`,
         {
           parse_mode: "Markdown",
           disable_web_page_preview: false,
@@ -188,7 +187,8 @@ setInterval(async () => {
     if (hour === 23 && minute === 0 && lastNightAnnouncement !== today) {
       lastNightAnnouncement = today;
 
-      await bot.sendMessage(GROUP_ID,
+      await bot.sendMessage(
+        GROUP_ID,
 `🌒 *MODO NOCHE ACTIVADO*
 
 El grupo entra en descanso nocturno.
@@ -203,7 +203,8 @@ Gracias por tu comprensión.`,
     if (hour === 6 && minute === 0 && lastMorningAnnouncement !== today) {
       lastMorningAnnouncement = today;
 
-      await bot.sendMessage(GROUP_ID,
+      await bot.sendMessage(
+        GROUP_ID,
 `🌅 *FIN MODO NOCHE*
 
 ✅ El grupo vuelve a estar activo.
