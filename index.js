@@ -97,15 +97,30 @@ bot.on("new_chat_members", async (msg) => {
 
   for (const user of msg.new_chat_members) {
     try {
+
+      const now = getLocalTime();
+      const fecha = now.toLocaleDateString("es-NI");
+      const hora = now.toLocaleTimeString("es-NI", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
       await bot.sendMessage(GROUP_ID,
-`🎉 Bienvenid@ ${user.first_name} a TechnNL Mods 🚀
+`🎉 Bienvenid@ a TechnNL Mods ⚙️
+👤 Nombre : ${user.first_name}
+👤 ID : ${user.id}
+📑 Fecha : ${fecha}
+🕘 Hora : ${hora}
 
 📌 Reglas:
 1️⃣ Respeto
 2️⃣ No Spam
 3️⃣ No enlaces de otros grupos
-4️⃣ ✅ Preguntar de manera cortés y amable.`,
+4️⃣ ✅ Preguntar de manera cortés y amable.
+
+https://lnk.ua/RVd5836N3`,
         {
+          disable_web_page_preview: false,
           reply_markup: {
             inline_keyboard: [
               [
@@ -118,6 +133,7 @@ bot.on("new_chat_members", async (msg) => {
           }
         }
       );
+
     } catch (err) {
       console.log("Error enviando bienvenida:", err.message);
     }
