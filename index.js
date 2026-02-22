@@ -118,7 +118,7 @@ bot.on("new_chat_members", async (msg) => {
 3️⃣ No enlaces de otros grupos
 4️⃣ ✅ Preguntar de manera cortés y amable.
 
-https://lnk.ua/RVd5836N3`,
+[‎](https://lnk.ua/RVd5836N3)`,
         {
           disable_web_page_preview: false,
           reply_markup: {
