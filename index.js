@@ -120,6 +120,7 @@ bot.on("new_chat_members", async (msg) => {
 
 [‎](https://lnk.ua/RVd5836N3)`,
         {
+          parse_mode: "Markdown",
           disable_web_page_preview: false,
           reply_markup: {
             inline_keyboard: [
