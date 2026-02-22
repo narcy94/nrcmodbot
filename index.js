@@ -117,7 +117,7 @@ bot.on("new_chat_members", async (msg) => {
 1️⃣ Respeto
 2️⃣ No Spam
 3️⃣ No enlaces de otros grupos
-4️⃣ ✅ Preguntar de manera cortés y amable.[‎](https://files.catbox.moe/5fk3q2.jpg)`,
+4️⃣ ✅ Preguntar de manera cortés y amable.[‎](https://lnk.ua/RVd5836N3)`,
         {
           parse_mode: "Markdown",
           disable_web_page_preview: false,
