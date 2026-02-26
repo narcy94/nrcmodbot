@@ -105,10 +105,15 @@ bot.on("new_chat_members", async (msg) => {
         minute: "2-digit"
       });
 
+      const usernameLine = user.username
+        ? `👤 Usuario : @${user.username}`
+        : `👤 Usuario : No tiene`;
+
       await bot.sendMessage(
         GROUP_ID,
 `🎉 Bienvenid@ a TechnNL Mods ⚙️
-👤 Nombre : ${user.first_name}
+👤 Nombre : [${user.first_name}](tg://user?id=${user.id})
+${usernameLine}
 👤 ID : ${user.id}
 📑 Fecha : ${fecha}
 🕘 Hora : ${hora}
