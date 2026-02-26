@@ -105,6 +105,10 @@ bot.on("new_chat_members", async (msg) => {
         minute: "2-digit"
       });
 
+      // 🔹 Nombre completo (con apellido si existe)
+      const fullName = `${user.first_name}${user.last_name ? ' ' + user.last_name : ''}`;
+
+      // 🔹 Username opcional
       const usernameLine = user.username
         ? `👤 Usuario : @${user.username}`
         : `👤 Usuario : No tiene`;
@@ -112,7 +116,7 @@ bot.on("new_chat_members", async (msg) => {
       await bot.sendMessage(
         GROUP_ID,
 `🎉 Bienvenid@ a TechnNL Mods ⚙️
-👤 Nombre : <a href="tg://user?id=${user.id}">${user.first_name}</a>
+👤 Nombre : <a href="tg://user?id=${user.id}">${fullName}</a>
 ${usernameLine}
 👤 ID : ${user.id}
 📑 Fecha : ${fecha}
