@@ -112,7 +112,7 @@ bot.on("new_chat_members", async (msg) => {
       await bot.sendMessage(
         GROUP_ID,
 `🎉 Bienvenid@ a TechnNL Mods ⚙️
-👤 Nombre : [${user.first_name}](tg://user?id=${user.id})
+👤 Nombre : <a href="tg://user?id=${user.id}">${user.first_name}</a>
 ${usernameLine}
 👤 ID : ${user.id}
 📑 Fecha : ${fecha}
@@ -122,9 +122,9 @@ ${usernameLine}
 1️⃣ Respeto
 2️⃣ No Spam
 3️⃣ No enlaces de otros grupos
-4️⃣ ✅ Preguntar de manera cortés y amable.[‎](https://lnk.ua/RVd5836N3)`,
+4️⃣ ✅ Preguntar de manera cortés y amable.<a href="https://lnk.ua/RVd5836N3">&#8203;</a>`,
         {
-          parse_mode: "Markdown",
+          parse_mode: "HTML",
           disable_web_page_preview: false,
           reply_markup: {
             inline_keyboard: [
@@ -194,14 +194,14 @@ setInterval(async () => {
 
       await bot.sendMessage(
         GROUP_ID,
-`🌒 *MODO NOCHE ACTIVADO*
+`🌒 <b>MODO NOCHE ACTIVADO</b>
 
 El grupo entra en descanso nocturno.
 
 ⏳ No se podrán enviar mensajes hasta las 6:00 AM.
 
 Gracias por tu comprensión.`,
-        { parse_mode: "Markdown" }
+        { parse_mode: "HTML" }
       );
     }
 
@@ -210,12 +210,12 @@ Gracias por tu comprensión.`,
 
       await bot.sendMessage(
         GROUP_ID,
-`🌅 *FIN MODO NOCHE*
+`🌅 <b>FIN MODO NOCHE</b>
 
 ✅ El grupo vuelve a estar activo.
 
 Ahora puedes enviar mensajes con normalidad.`,
-        { parse_mode: "Markdown" }
+        { parse_mode: "HTML" }
       );
     }
 
