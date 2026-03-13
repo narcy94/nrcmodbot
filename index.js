@@ -50,7 +50,6 @@ app.post(`/bot${TOKEN}`, (req, res) => {
     bot.processUpdate(req.body);
     res.sendStatus(200);
   } catch (error) {
-    console.error("Error procesando update:", error);
     res.sendStatus(500);
   }
 });
@@ -141,9 +140,7 @@ ${usernameLine}
         }
       );
 
-    } catch (err) {
-      console.log("Error enviando bienvenida:", err.message);
-    }
+    } catch (err) {}
   }
 
 });
@@ -183,20 +180,9 @@ bot.on("message", async (msg) => {
         }
 
         await bot.deleteMessage(msg.chat.id, msg.message_id);
-
-        await bot.sendMessage(
-          GROUP_ID,
-`🚫 <b>Enlace eliminado</b>
-
-Solo se permiten enlaces de Google Play Store.`,
-          { parse_mode: "HTML" }
-        );
-
         return;
 
-      } catch (err) {
-        console.log("Error anti-links:", err.message);
-      }
+      } catch (err) {}
     }
   }
 
@@ -213,9 +199,7 @@ Solo se permiten enlaces de Google Play Store.`,
 
       await bot.deleteMessage(msg.chat.id, msg.message_id);
 
-    } catch (err) {
-      console.log("Error al borrar mensaje:", err.message);
-    }
+    } catch (err) {}
   }
 
 });
@@ -266,10 +250,8 @@ Ahora puedes enviar mensajes con normalidad.`,
       );
     }
 
-  } catch (err) {
-    console.log("Error en modo noche:", err.message);
-  }
+  } catch (err) {}
 
-}, 60000);
+}, 300000); // ⬅ ahora cada 5 minutos
 
 console.log("Bot running...");
