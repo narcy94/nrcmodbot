@@ -105,10 +105,8 @@ bot.on("new_chat_members", async (msg) => {
         minute: "2-digit"
       });
 
-      // 🔹 Nombre completo (con apellido si existe)
       const fullName = `${user.first_name}${user.last_name ? ' ' + user.last_name : ''}`;
 
-      // 🔹 Username opcional
       const usernameLine = user.username
         ? `👤 Usuario : @${user.username}`
         : `👤 Usuario : No tiene`;
@@ -151,7 +149,7 @@ ${usernameLine}
 });
 
 /* =========================
-   🔒 BLOQUEO MODO NOCHE
+   🔒 ANTI ENLACES + MODO NOCHE
 ========================= */
 
 bot.on("message", async (msg) => {
@@ -160,8 +158,53 @@ bot.on("message", async (msg) => {
   if (msg.chat.id !== GROUP_ID) return;
   if (msg.from?.is_bot) return;
 
+  const text = msg.text || msg.caption || "";
+
+  /* ===== ANTI LINKS ===== */
+
+  const urlRegex = /(https?:\/\/[^\s]+)/gi;
+
+  if (urlRegex.test(text)) {
+
+    const allowedDomains = [
+      "play.google.com"
+    ];
+
+    const allowed = allowedDomains.some(domain => text.includes(domain));
+
+    if (!allowed) {
+
+      try {
+
+        const member = await bot.getChatMember(GROUP_ID, msg.from.id);
+
+        if (member.status === "administrator" || member.status === "creator") {
+          return;
+        }
+
+        await bot.deleteMessage(msg.chat.id, msg.message_id);
+
+        await bot.sendMessage(
+          GROUP_ID,
+`🚫 <b>Enlace eliminado</b>
+
+Solo se permiten enlaces de Google Play Store.`,
+          { parse_mode: "HTML" }
+        );
+
+        return;
+
+      } catch (err) {
+        console.log("Error anti-links:", err.message);
+      }
+    }
+  }
+
+  /* ===== MODO NOCHE ===== */
+
   if (isNightTime()) {
     try {
+
       const member = await bot.getChatMember(GROUP_ID, msg.from.id);
 
       if (member.status === "administrator" || member.status === "creator") {
