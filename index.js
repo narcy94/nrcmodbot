@@ -29,6 +29,7 @@ const PUBLIC_URL = "https://nrcmodbot-production-caf5.up.railway.app";
 ========================= */
 
 const GROUP_ID = -1003262837658;
+const CHANNEL_ID = -1001827364410;
 const TIMEZONE_OFFSET = -6;
 
 const bot = new TelegramBot(TOKEN);
@@ -157,7 +158,13 @@ bot.on("message", async (msg) => {
 
   const text = msg.text || msg.caption || "";
 
-  /* ===== ANTI LINKS ===== */
+  /* ===== PERMITIR TODO SI VIENE DEL CANAL ===== */
+
+  if (msg.sender_chat && msg.sender_chat.id === CHANNEL_ID) {
+    return;
+  }
+
+  /* ===== ANTI LINKS PARA USUARIOS ===== */
 
   const urlRegex = /(https?:\/\/[^\s]+)/gi;
 
@@ -252,6 +259,6 @@ Ahora puedes enviar mensajes con normalidad.`,
 
   } catch (err) {}
 
-}, 300000); // ⬅ ahora cada 5 minutos
+}, 300000);
 
 console.log("Bot running...");
