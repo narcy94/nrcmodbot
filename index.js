@@ -34,6 +34,8 @@ const TIMEZONE_OFFSET = -6;
 
 const bot = new TelegramBot(TOKEN);
 
+let nightMessageId = null;
+
 /* =========================
    🔹 CONFIGURAR WEBHOOK
 ========================= */
@@ -50,7 +52,7 @@ app.post(`/bot${TOKEN}`, (req, res) => {
   try {
     bot.processUpdate(req.body);
     res.sendStatus(200);
-  } catch (error) {
+  } catch {
     res.sendStatus(500);
   }
 });
@@ -96,23 +98,22 @@ bot.on("new_chat_members", async (msg) => {
   if (msg.chat.id !== GROUP_ID) return;
 
   for (const user of msg.new_chat_members) {
-    try {
 
-      const now = getLocalTime();
-      const fecha = now.toLocaleDateString("es-NI");
-      const hora = now.toLocaleTimeString("es-NI", {
-        hour: "2-digit",
-        minute: "2-digit"
-      });
+    const now = getLocalTime();
+    const fecha = now.toLocaleDateString("es-NI");
+    const hora = now.toLocaleTimeString("es-NI", {
+      hour: "2-digit",
+      minute: "2-digit"
+    });
 
-      const fullName = `${user.first_name}${user.last_name ? ' ' + user.last_name : ''}`;
+    const fullName = `${user.first_name}${user.last_name ? ' ' + user.last_name : ''}`;
 
-      const usernameLine = user.username
-        ? `👤 Usuario : @${user.username}`
-        : `👤 Usuario : No tiene`;
+    const usernameLine = user.username
+      ? `👤 Usuario : @${user.username}`
+      : `👤 Usuario : No tiene`;
 
-      await bot.sendMessage(
-        GROUP_ID,
+    await bot.sendMessage(
+      GROUP_ID,
 `🎉 Bienvenid@ a TechnNL Mods ⚙️
 👤 Nombre : <a href="tg://user?id=${user.id}">${fullName}</a>
 ${usernameLine}
@@ -125,23 +126,17 @@ ${usernameLine}
 2️⃣ No Spam
 3️⃣ No enlaces de otros grupos
 4️⃣ ✅ Preguntar de manera cortés y amable.<a href="https://lnk.ua/RVd5836N3">&#8203;</a>`,
-        {
-          parse_mode: "HTML",
-          disable_web_page_preview: false,
-          reply_markup: {
-            inline_keyboard: [
-              [
-                {
-                  text: "📺 Canal de YouTube",
-                  url: "https://youtube.com/@technnl?si=gg9_mkCh00kTDCyA"
-                }
-              ]
-            ]
-          }
+      {
+        parse_mode: "HTML",
+        disable_web_page_preview: false,
+        reply_markup: {
+          inline_keyboard: [[{
+            text: "📺 Canal de YouTube",
+            url: "https://youtube.com/@technnl?si=gg9_mkCh00kTDCyA"
+          }]]
         }
-      );
-
-    } catch (err) {}
+      }
+    );
   }
 
 });
@@ -178,26 +173,6 @@ bot.on("message", async (msg) => {
 
     if (!allowed) {
 
-      try {
-
-        const member = await bot.getChatMember(GROUP_ID, msg.from.id);
-
-        if (member.status === "administrator" || member.status === "creator") {
-          return;
-        }
-
-        await bot.deleteMessage(msg.chat.id, msg.message_id);
-        return;
-
-      } catch (err) {}
-    }
-  }
-
-  /* ===== MODO NOCHE ===== */
-
-  if (isNightTime()) {
-    try {
-
       const member = await bot.getChatMember(GROUP_ID, msg.from.id);
 
       if (member.status === "administrator" || member.status === "creator") {
@@ -205,8 +180,21 @@ bot.on("message", async (msg) => {
       }
 
       await bot.deleteMessage(msg.chat.id, msg.message_id);
+      return;
+    }
+  }
 
-    } catch (err) {}
+  /* ===== BLOQUEO MODO NOCHE ===== */
+
+  if (isNightTime()) {
+
+    const member = await bot.getChatMember(GROUP_ID, msg.from.id);
+
+    if (member.status === "administrator" || member.status === "creator") {
+      return;
+    }
+
+    await bot.deleteMessage(msg.chat.id, msg.message_id);
   }
 
 });
@@ -215,22 +203,17 @@ bot.on("message", async (msg) => {
    🌒 MODO NOCHE AUTOMÁTICO
 ========================= */
 
-let lastNightAnnouncement = null;
-let lastMorningAnnouncement = null;
-
 setInterval(async () => {
 
   const now = getLocalTime();
   const hour = now.getHours();
   const minute = now.getMinutes();
-  const today = now.toDateString();
 
   try {
 
-    if (hour === 23 && minute === 0 && lastNightAnnouncement !== today) {
-      lastNightAnnouncement = today;
+    if (hour === 23 && minute === 0 && !nightMessageId) {
 
-      await bot.sendMessage(
+      const msg = await bot.sendMessage(
         GROUP_ID,
 `🌒 <b>MODO NOCHE ACTIVADO</b>
 
@@ -241,24 +224,27 @@ El grupo entra en descanso nocturno.
 Gracias por tu comprensión.`,
         { parse_mode: "HTML" }
       );
+
+      nightMessageId = msg.message_id;
     }
 
-    if (hour === 6 && minute === 0 && lastMorningAnnouncement !== today) {
-      lastMorningAnnouncement = today;
+    if (hour === 6 && minute === 0 && nightMessageId) {
+
+      await bot.deleteMessage(GROUP_ID, nightMessageId).catch(()=>{});
 
       await bot.sendMessage(
         GROUP_ID,
 `🌅 <b>FIN MODO NOCHE</b>
 
-✅ El grupo vuelve a estar activo.
-
-Ahora puedes enviar mensajes con normalidad.`,
+✅ A partir de este momento puedes volver a enviar mensajes normalmente.`,
         { parse_mode: "HTML" }
       );
+
+      nightMessageId = null;
     }
 
-  } catch (err) {}
+  } catch {}
 
-}, 300000);
+}, 60000);
 
 console.log("Bot running...");
