@@ -21,8 +21,8 @@ if (!process.env.PORT) {
 const PORT = process.env.PORT;
 const TOKEN = process.env.TOKEN;
 
-// 🔹 URL pública Railway
-const PUBLIC_URL = "https://nrcmodbot-production-caf5.up.railway.app";
+// 🔹 URL pública Render ✅ (corregido)
+const PUBLIC_URL = "https://technnlmodsbot.onrender.com";
 
 /* =========================
    🔹 CONFIGURACIÓN
@@ -89,11 +89,12 @@ function isNightTime() {
 }
 
 /* =========================
-   🎉 BIENVENIDA
+   🎉 BIENVENIDA (CORREGIDO)
 ========================= */
 
-bot.on("new_chat_members", async (msg) => {
+bot.on("message", async (msg) => {
 
+  if (!msg.new_chat_members) return;
   if (!msg.chat) return;
   if (msg.chat.id !== GROUP_ID) return;
 
