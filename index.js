@@ -275,7 +275,7 @@ bot.onText(/\/mute/, async (msg) => {
 });
 
 /* =========================
-   🔊 /unmute (FIX REAL SIN EXPULSAR)
+   🔊 /unmute (FIX REAL FINAL)
 ========================= */
 
 bot.onText(/\/unmute/, async (msg) => {
@@ -303,22 +303,10 @@ bot.onText(/\/unmute/, async (msg) => {
 
     await bot.restrictChatMember(msg.chat.id, userId, {
       until_date: 0,
-      permissions: {
-        can_send_messages: true,
-        can_send_audios: true,
-        can_send_documents: true,
-        can_send_photos: true,
-        can_send_videos: true,
-        can_send_video_notes: true,
-        can_send_voice_notes: true,
-        can_send_polls: true,
-        can_send_other_messages: true,
-        can_add_web_page_previews: true,
-        can_invite_users: true
-      }
+      permissions: { can_send_messages: true }
     });
 
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     await bot.restrictChatMember(msg.chat.id, userId, {
       permissions: {
