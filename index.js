@@ -32,7 +32,6 @@ const GROUP_ID = -1003262837658;
 const CHANNEL_ID = -1001827364410;
 const TIMEZONE_OFFSET = -6;
 
-// ✅ CORRECCIÓN CLAVE
 const bot = new TelegramBot(TOKEN, {
   webHook: true
 });
@@ -232,7 +231,7 @@ bot.on("message", async (msg) => {
 });
 
 /* =========================
-   🔇 /mute (CORREGIDO)
+   🔇 /mute (ADMIN ANÓNIMO)
 ========================= */
 
 bot.onText(/\/mute/, async (msg) => {
@@ -241,16 +240,20 @@ bot.onText(/\/mute/, async (msg) => {
     return bot.sendMessage(msg.chat.id, "❌ Responde al mensaje del usuario");
   }
 
-  const admin = await bot.getChatMember(msg.chat.id, msg.from.id);
-  if (admin.status !== "administrator" && admin.status !== "creator") {
+  let isAdmin = false;
+
+  if (msg.sender_chat && msg.sender_chat.id === msg.chat.id) {
+    isAdmin = true;
+  } else {
+    const admin = await bot.getChatMember(msg.chat.id, msg.from.id);
+    isAdmin = admin.status === "administrator" || admin.status === "creator";
+  }
+
+  if (!isAdmin) {
     return bot.sendMessage(msg.chat.id, "❌ Solo admins pueden usar este comando");
   }
 
   const userId = msg.reply_to_message.from?.id;
-
-  if (!userId) {
-    return bot.sendMessage(msg.chat.id, "❌ No se pudo obtener el usuario");
-  }
 
   try {
 
@@ -264,30 +267,40 @@ bot.onText(/\/mute/, async (msg) => {
 
     await bot.restrictChatMember(msg.chat.id, userId, {
       until_date: until,
-      permissions: {
-        can_send_messages: false
-      }
+      permissions: { can_send_messages: false }
     });
 
     await bot.sendMessage(msg.chat.id, "🔇 Usuario silenciado por 24 horas");
 
   } catch (err) {
     console.log(err);
-    bot.sendMessage(msg.chat.id, "❌ Error al mutear (revisa permisos)");
+    bot.sendMessage(msg.chat.id, "❌ Error al mutear");
   }
 
 });
 
 /* =========================
-   🔊 /unmute
+   🔊 /unmute (ADMIN ANÓNIMO)
 ========================= */
 
 bot.onText(/\/unmute/, async (msg) => {
 
-  if (!msg.reply_to_message) return;
+  if (!msg.reply_to_message) {
+    return bot.sendMessage(msg.chat.id, "❌ Responde al mensaje del usuario");
+  }
 
-  const admin = await bot.getChatMember(msg.chat.id, msg.from.id);
-  if (admin.status !== "administrator" && admin.status !== "creator") return;
+  let isAdmin = false;
+
+  if (msg.sender_chat && msg.sender_chat.id === msg.chat.id) {
+    isAdmin = true;
+  } else {
+    const admin = await bot.getChatMember(msg.chat.id, msg.from.id);
+    isAdmin = admin.status === "administrator" || admin.status === "creator";
+  }
+
+  if (!isAdmin) {
+    return bot.sendMessage(msg.chat.id, "❌ Solo admins pueden usar este comando");
+  }
 
   const userId = msg.reply_to_message.from.id;
 
@@ -324,9 +337,7 @@ setInterval(async () => {
 
 El grupo entra en descanso nocturno.
 
-⏳ No se podrán enviar mensajes hasta las 6:00 AM.
-
-Gracias por tu comprensión.`,
+⏳ No se podrán enviar mensajes hasta las 6:00 AM.`,
         { parse_mode: "HTML" }
       );
 
@@ -341,7 +352,7 @@ Gracias por tu comprensión.`,
         GROUP_ID,
 `🌅 <b>FIN MODO NOCHE</b>
 
-✅ A partir de este momento puedes volver a enviar mensajes normalmente.`,
+✅ Ya puedes enviar mensajes.`,
         { parse_mode: "HTML" }
       );
 
