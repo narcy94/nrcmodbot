@@ -21,7 +21,7 @@ if (!process.env.PORT) {
 const PORT = process.env.PORT;
 const TOKEN = process.env.TOKEN;
 
-// 🔹 URL pública Render ✅ (corregido)
+// 🔹 URL pública Render
 const PUBLIC_URL = "https://technnlmodsbot.onrender.com";
 
 /* =========================
@@ -35,6 +35,12 @@ const TIMEZONE_OFFSET = -6;
 const bot = new TelegramBot(TOKEN);
 
 let nightMessageId = null;
+
+/* =========================
+   🔒 MODERACIÓN (ANTI-SPAM)
+========================= */
+
+const spamMap = {};
 
 /* =========================
    🔹 CONFIGURAR WEBHOOK
@@ -89,7 +95,7 @@ function isNightTime() {
 }
 
 /* =========================
-   🎉 BIENVENIDA (CORREGIDO)
+   🎉 BIENVENIDA
 ========================= */
 
 bot.on("message", async (msg) => {
@@ -143,7 +149,7 @@ ${usernameLine}
 });
 
 /* =========================
-   🔒 ANTI ENLACES + MODO NOCHE
+   🔒 ANTI ENLACES + MODO NOCHE + ANTI-SPAM
 ========================= */
 
 bot.on("message", async (msg) => {
@@ -153,50 +159,122 @@ bot.on("message", async (msg) => {
   if (msg.from?.is_bot) return;
 
   const text = msg.text || msg.caption || "";
+  const userId = msg.from.id;
 
-  /* ===== PERMITIR TODO SI VIENE DEL CANAL ===== */
+  const member = await bot.getChatMember(GROUP_ID, userId);
+  const isAdmin = member.status === "administrator" || member.status === "creator";
+
+  /* ===== ANTI-SPAM ===== */
+
+  if (!isAdmin && text) {
+
+    if (!spamMap[userId]) {
+      spamMap[userId] = { last: text, count: 1 };
+    } else {
+      if (spamMap[userId].last === text) {
+        spamMap[userId].count++;
+      } else {
+        spamMap[userId] = { last: text, count: 1 };
+      }
+    }
+
+    if (spamMap[userId].count >= 3) {
+
+      const until = Math.floor(Date.now() / 1000) + (48 * 60 * 60);
+
+      await bot.restrictChatMember(msg.chat.id, userId, {
+        until_date: until,
+        permissions: { can_send_messages: false }
+      });
+
+      await bot.sendMessage(msg.chat.id, "🚫 Usuario silenciado por spam (48h)");
+
+      spamMap[userId].count = 0;
+      return;
+    }
+  }
+
+  /* ===== PERMITIR CANAL ===== */
 
   if (msg.sender_chat && msg.sender_chat.id === CHANNEL_ID) {
     return;
   }
 
-  /* ===== ANTI LINKS PARA USUARIOS ===== */
+  /* ===== ANTI LINKS ===== */
 
   const urlRegex = /(https?:\/\/[^\s]+)/gi;
 
   if (urlRegex.test(text)) {
 
-    const allowedDomains = [
-      "play.google.com"
-    ];
-
-    const allowed = allowedDomains.some(domain => text.includes(domain));
+    const allowed = text.includes("play.google.com");
 
     if (!allowed) {
 
-      const member = await bot.getChatMember(GROUP_ID, msg.from.id);
-
-      if (member.status === "administrator" || member.status === "creator") {
-        return;
-      }
+      if (isAdmin) return;
 
       await bot.deleteMessage(msg.chat.id, msg.message_id);
       return;
     }
   }
 
-  /* ===== BLOQUEO MODO NOCHE ===== */
+  /* ===== MODO NOCHE ===== */
 
   if (isNightTime()) {
 
-    const member = await bot.getChatMember(GROUP_ID, msg.from.id);
-
-    if (member.status === "administrator" || member.status === "creator") {
-      return;
-    }
+    if (isAdmin) return;
 
     await bot.deleteMessage(msg.chat.id, msg.message_id);
   }
+
+});
+
+/* =========================
+   🔇 /mute
+========================= */
+
+bot.onText(/\/mute/, async (msg) => {
+
+  if (!msg.reply_to_message) return;
+
+  const admin = await bot.getChatMember(msg.chat.id, msg.from.id);
+  if (admin.status !== "administrator" && admin.status !== "creator") return;
+
+  const userId = msg.reply_to_message.from.id;
+
+  const until = Math.floor(Date.now() / 1000) + (24 * 60 * 60);
+
+  await bot.restrictChatMember(msg.chat.id, userId, {
+    until_date: until,
+    permissions: { can_send_messages: false }
+  });
+
+  await bot.sendMessage(msg.chat.id, "🔇 Usuario silenciado por 24 horas");
+
+});
+
+/* =========================
+   🔊 /unmute
+========================= */
+
+bot.onText(/\/unmute/, async (msg) => {
+
+  if (!msg.reply_to_message) return;
+
+  const admin = await bot.getChatMember(msg.chat.id, msg.from.id);
+  if (admin.status !== "administrator" && admin.status !== "creator") return;
+
+  const userId = msg.reply_to_message.from.id;
+
+  await bot.restrictChatMember(msg.chat.id, userId, {
+    permissions: {
+      can_send_messages: true,
+      can_send_media_messages: true,
+      can_send_other_messages: true,
+      can_add_web_page_previews: true
+    }
+  });
+
+  await bot.sendMessage(msg.chat.id, "🔊 Usuario desmuteado");
 
 });
 
