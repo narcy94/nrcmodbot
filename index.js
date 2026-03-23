@@ -283,7 +283,7 @@ bot.onText(/\/mute/, async (msg) => {
 });
 
 /* =========================
-   🔊 /unmute (FIX REAL)
+   🔊 /unmute (FIX DEFINITIVO)
 ========================= */
 
 bot.onText(/\/unmute/, async (msg) => {
@@ -308,30 +308,11 @@ bot.onText(/\/unmute/, async (msg) => {
   const userId = msg.reply_to_message.from.id;
 
   try {
-
-    await bot.restrictChatMember(msg.chat.id, userId, {
-      until_date: 0,
-      permissions: { can_send_messages: true }
-    });
-
-    await bot.restrictChatMember(msg.chat.id, userId, {
-      permissions: {
-        can_send_messages: true,
-        can_send_audios: true,
-        can_send_documents: true,
-        can_send_photos: true,
-        can_send_videos: true,
-        can_send_video_notes: true,
-        can_send_voice_notes: true,
-        can_send_polls: true,
-        can_send_other_messages: true,
-        can_add_web_page_previews: true,
-        can_invite_users: true
-      }
-    });
+    // 🔥 Reset total: elimina cualquier restricción/mute persistente
+    await bot.banChatMember(msg.chat.id, userId, { revoke_messages: false });
+    await bot.unbanChatMember(msg.chat.id, userId, { only_if_banned: true });
 
     await bot.sendMessage(msg.chat.id, "🔊 Usuario desmuteado correctamente");
-
   } catch (err) {
     console.log(err);
     bot.sendMessage(msg.chat.id, "❌ Error al desmutear");
