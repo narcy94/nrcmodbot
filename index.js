@@ -32,7 +32,10 @@ const GROUP_ID = -1003262837658;
 const CHANNEL_ID = -1001827364410;
 const TIMEZONE_OFFSET = -6;
 
-const bot = new TelegramBot(TOKEN);
+// ✅ CORRECCIÓN CLAVE
+const bot = new TelegramBot(TOKEN, {
+  webHook: true
+});
 
 let nightMessageId = null;
 
@@ -229,26 +232,49 @@ bot.on("message", async (msg) => {
 });
 
 /* =========================
-   🔇 /mute
+   🔇 /mute (CORREGIDO)
 ========================= */
 
 bot.onText(/\/mute/, async (msg) => {
 
-  if (!msg.reply_to_message) return;
+  if (!msg.reply_to_message) {
+    return bot.sendMessage(msg.chat.id, "❌ Responde al mensaje del usuario");
+  }
 
   const admin = await bot.getChatMember(msg.chat.id, msg.from.id);
-  if (admin.status !== "administrator" && admin.status !== "creator") return;
+  if (admin.status !== "administrator" && admin.status !== "creator") {
+    return bot.sendMessage(msg.chat.id, "❌ Solo admins pueden usar este comando");
+  }
 
-  const userId = msg.reply_to_message.from.id;
+  const userId = msg.reply_to_message.from?.id;
 
-  const until = Math.floor(Date.now() / 1000) + (24 * 60 * 60);
+  if (!userId) {
+    return bot.sendMessage(msg.chat.id, "❌ No se pudo obtener el usuario");
+  }
 
-  await bot.restrictChatMember(msg.chat.id, userId, {
-    until_date: until,
-    permissions: { can_send_messages: false }
-  });
+  try {
 
-  await bot.sendMessage(msg.chat.id, "🔇 Usuario silenciado por 24 horas");
+    const target = await bot.getChatMember(msg.chat.id, userId);
+
+    if (target.status === "administrator" || target.status === "creator") {
+      return bot.sendMessage(msg.chat.id, "❌ No puedes mutear a un admin");
+    }
+
+    const until = Math.floor(Date.now() / 1000) + (24 * 60 * 60);
+
+    await bot.restrictChatMember(msg.chat.id, userId, {
+      until_date: until,
+      permissions: {
+        can_send_messages: false
+      }
+    });
+
+    await bot.sendMessage(msg.chat.id, "🔇 Usuario silenciado por 24 horas");
+
+  } catch (err) {
+    console.log(err);
+    bot.sendMessage(msg.chat.id, "❌ Error al mutear (revisa permisos)");
+  }
 
 });
 
