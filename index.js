@@ -169,8 +169,6 @@ bot.on("message", async (msg) => {
 
   const isAdmin = member && (member.status === "administrator" || member.status === "creator");
 
-  /* ===== ANTI-SPAM ===== */
-
   if (!isAdmin && text && userId) {
 
     if (!spamMap[userId]) {
@@ -210,14 +208,18 @@ bot.on("message", async (msg) => {
     const allowed = text.includes("play.google.com");
 
     if (!allowed) {
+
       if (isAdmin) return;
+
       await bot.deleteMessage(msg.chat.id, msg.message_id);
       return;
     }
   }
 
   if (isNightTime()) {
+
     if (isAdmin) return;
+
     await bot.deleteMessage(msg.chat.id, msg.message_id);
   }
 
@@ -273,7 +275,7 @@ bot.onText(/\/mute/, async (msg) => {
 });
 
 /* =========================
-   🔊 /unmute (CORREGIDO SIN EXPULSAR)
+   🔊 /unmute (FIX REAL SIN EXPULSAR)
 ========================= */
 
 bot.onText(/\/unmute/, async (msg) => {
@@ -303,25 +305,29 @@ bot.onText(/\/unmute/, async (msg) => {
       until_date: 0,
       permissions: {
         can_send_messages: true,
+        can_send_audios: true,
+        can_send_documents: true,
+        can_send_photos: true,
+        can_send_videos: true,
+        can_send_video_notes: true,
+        can_send_voice_notes: true,
+        can_send_polls: true,
+        can_send_other_messages: true,
+        can_add_web_page_previews: true,
+        can_invite_users: true
+      }
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    await bot.restrictChatMember(msg.chat.id, userId, {
+      permissions: {
+        can_send_messages: true,
         can_send_media_messages: true,
         can_send_other_messages: true,
         can_add_web_page_previews: true
       }
     });
-
-    const check = await bot.getChatMember(msg.chat.id, userId);
-
-    if (check.status === "restricted") {
-      await bot.restrictChatMember(msg.chat.id, userId, {
-        until_date: 0,
-        permissions: {
-          can_send_messages: true,
-          can_send_media_messages: true,
-          can_send_other_messages: true,
-          can_add_web_page_previews: true
-        }
-      });
-    }
 
     await bot.sendMessage(msg.chat.id, "🔊 Usuario desmuteado correctamente");
 
