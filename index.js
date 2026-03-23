@@ -161,14 +161,17 @@ bot.on("message", async (msg) => {
   if (msg.from?.is_bot) return;
 
   const text = msg.text || msg.caption || "";
-  const userId = msg.from.id;
+  const userId = msg.from?.id;
 
-  const member = await bot.getChatMember(GROUP_ID, userId);
-  const isAdmin = member.status === "administrator" || member.status === "creator";
+  const member = userId
+    ? await bot.getChatMember(GROUP_ID, userId)
+    : null;
+
+  const isAdmin = member && (member.status === "administrator" || member.status === "creator");
 
   /* ===== ANTI-SPAM ===== */
 
-  if (!isAdmin && text) {
+  if (!isAdmin && text && userId) {
 
     if (!spamMap[userId]) {
       spamMap[userId] = { last: text, count: 1 };
@@ -231,7 +234,7 @@ bot.on("message", async (msg) => {
 });
 
 /* =========================
-   🔇 /mute (ADMIN ANÓNIMO)
+   🔇 /mute (FIX ANÓNIMO)
 ========================= */
 
 bot.onText(/\/mute/, async (msg) => {
@@ -242,9 +245,10 @@ bot.onText(/\/mute/, async (msg) => {
 
   let isAdmin = false;
 
-  if (msg.sender_chat && msg.sender_chat.id === msg.chat.id) {
+  // ✅ FIX REAL
+  if (msg.sender_chat) {
     isAdmin = true;
-  } else {
+  } else if (msg.from) {
     const admin = await bot.getChatMember(msg.chat.id, msg.from.id);
     isAdmin = admin.status === "administrator" || admin.status === "creator";
   }
@@ -280,7 +284,7 @@ bot.onText(/\/mute/, async (msg) => {
 });
 
 /* =========================
-   🔊 /unmute (ADMIN ANÓNIMO)
+   🔊 /unmute (FIX ANÓNIMO)
 ========================= */
 
 bot.onText(/\/unmute/, async (msg) => {
@@ -291,9 +295,9 @@ bot.onText(/\/unmute/, async (msg) => {
 
   let isAdmin = false;
 
-  if (msg.sender_chat && msg.sender_chat.id === msg.chat.id) {
+  if (msg.sender_chat) {
     isAdmin = true;
-  } else {
+  } else if (msg.from) {
     const admin = await bot.getChatMember(msg.chat.id, msg.from.id);
     isAdmin = admin.status === "administrator" || admin.status === "creator";
   }
