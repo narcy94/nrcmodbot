@@ -201,9 +201,7 @@ bot.on("message", async (msg) => {
 
   /* ===== PERMITIR CANAL ===== */
 
-  if (msg.sender_chat && msg.sender_chat.id === CHANNEL_ID) {
-    return;
-  }
+  if (msg.sender_chat && msg.sender_chat.id === CHANNEL_ID) return;
 
   /* ===== ANTI LINKS ===== */
 
@@ -247,7 +245,7 @@ bot.onText(/\/mute/, async (msg) => {
 
   if (msg.sender_chat) {
     isAdmin = true;
-  } else if (msg.from) {
+  } else {
     const admin = await bot.getChatMember(msg.chat.id, msg.from.id);
     isAdmin = admin.status === "administrator" || admin.status === "creator";
   }
@@ -256,34 +254,21 @@ bot.onText(/\/mute/, async (msg) => {
     return bot.sendMessage(msg.chat.id, "❌ Solo admins pueden usar este comando");
   }
 
-  const userId = msg.reply_to_message.from?.id;
+  const userId = msg.reply_to_message.from.id;
 
-  try {
+  const until = Math.floor(Date.now() / 1000) + (24 * 60 * 60);
 
-    const target = await bot.getChatMember(msg.chat.id, userId);
+  await bot.restrictChatMember(msg.chat.id, userId, {
+    until_date: until,
+    permissions: { can_send_messages: false }
+  });
 
-    if (target.status === "administrator" || target.status === "creator") {
-      return bot.sendMessage(msg.chat.id, "❌ No puedes mutear a un admin");
-    }
-
-    const until = Math.floor(Date.now() / 1000) + (24 * 60 * 60);
-
-    await bot.restrictChatMember(msg.chat.id, userId, {
-      until_date: until,
-      permissions: { can_send_messages: false }
-    });
-
-    await bot.sendMessage(msg.chat.id, "🔇 Usuario silenciado por 24 horas");
-
-  } catch (err) {
-    console.log(err);
-    bot.sendMessage(msg.chat.id, "❌ Error al mutear");
-  }
+  await bot.sendMessage(msg.chat.id, "🔇 Usuario silenciado por 24 horas");
 
 });
 
 /* =========================
-   🔊 /unmute (FIX DEFINITIVO)
+   🔊 /unmute (HÍBRIDO FINAL)
 ========================= */
 
 bot.onText(/\/unmute/, async (msg) => {
@@ -296,7 +281,7 @@ bot.onText(/\/unmute/, async (msg) => {
 
   if (msg.sender_chat) {
     isAdmin = true;
-  } else if (msg.from) {
+  } else {
     const admin = await bot.getChatMember(msg.chat.id, msg.from.id);
     isAdmin = admin.status === "administrator" || admin.status === "creator";
   }
@@ -308,14 +293,34 @@ bot.onText(/\/unmute/, async (msg) => {
   const userId = msg.reply_to_message.from.id;
 
   try {
-    // 🔥 Reset total: elimina cualquier restricción/mute persistente
+
+    await bot.restrictChatMember(msg.chat.id, userId, {
+      until_date: 0,
+      permissions: {
+        can_send_messages: true,
+        can_send_audios: true,
+        can_send_documents: true,
+        can_send_photos: true,
+        can_send_videos: true,
+        can_send_video_notes: true,
+        can_send_voice_notes: true,
+        can_send_polls: true,
+        can_send_other_messages: true,
+        can_add_web_page_previews: true,
+        can_invite_users: true
+      }
+    });
+
+    await bot.sendMessage(msg.chat.id, "🔊 Usuario desmuteado correctamente");
+
+  } catch (err) {
+
+    console.log("Fallback:", err.message);
+
     await bot.banChatMember(msg.chat.id, userId, { revoke_messages: false });
     await bot.unbanChatMember(msg.chat.id, userId, { only_if_banned: true });
 
-    await bot.sendMessage(msg.chat.id, "🔊 Usuario desmuteado correctamente");
-  } catch (err) {
-    console.log(err);
-    bot.sendMessage(msg.chat.id, "❌ Error al desmutear");
+    await bot.sendMessage(msg.chat.id, "🔊 Usuario desmuteado (modo seguro)");
   }
 
 });
