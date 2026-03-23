@@ -199,13 +199,9 @@ bot.on("message", async (msg) => {
     }
   }
 
-  /* ===== PERMITIR CANAL ===== */
-
   if (msg.sender_chat && msg.sender_chat.id === CHANNEL_ID) {
     return;
   }
-
-  /* ===== ANTI LINKS ===== */
 
   const urlRegex = /(https?:\/\/[^\s]+)/gi;
 
@@ -214,20 +210,14 @@ bot.on("message", async (msg) => {
     const allowed = text.includes("play.google.com");
 
     if (!allowed) {
-
       if (isAdmin) return;
-
       await bot.deleteMessage(msg.chat.id, msg.message_id);
       return;
     }
   }
 
-  /* ===== MODO NOCHE ===== */
-
   if (isNightTime()) {
-
     if (isAdmin) return;
-
     await bot.deleteMessage(msg.chat.id, msg.message_id);
   }
 
@@ -247,7 +237,7 @@ bot.onText(/\/mute/, async (msg) => {
 
   if (msg.sender_chat) {
     isAdmin = true;
-  } else {
+  } else if (msg.from) {
     const admin = await bot.getChatMember(msg.chat.id, msg.from.id);
     isAdmin = admin.status === "administrator" || admin.status === "creator";
   }
@@ -283,7 +273,7 @@ bot.onText(/\/mute/, async (msg) => {
 });
 
 /* =========================
-   🔊 /unmute (FIX REAL FINAL)
+   🔊 /unmute (CORREGIDO SIN EXPULSAR)
 ========================= */
 
 bot.onText(/\/unmute/, async (msg) => {
@@ -296,7 +286,7 @@ bot.onText(/\/unmute/, async (msg) => {
 
   if (msg.sender_chat) {
     isAdmin = true;
-  } else {
+  } else if (msg.from) {
     const admin = await bot.getChatMember(msg.chat.id, msg.from.id);
     isAdmin = admin.status === "administrator" || admin.status === "creator";
   }
@@ -313,18 +303,25 @@ bot.onText(/\/unmute/, async (msg) => {
       until_date: 0,
       permissions: {
         can_send_messages: true,
-        can_send_audios: true,
-        can_send_documents: true,
-        can_send_photos: true,
-        can_send_videos: true,
-        can_send_video_notes: true,
-        can_send_voice_notes: true,
-        can_send_polls: true,
+        can_send_media_messages: true,
         can_send_other_messages: true,
-        can_add_web_page_previews: true,
-        can_invite_users: true
+        can_add_web_page_previews: true
       }
     });
+
+    const check = await bot.getChatMember(msg.chat.id, userId);
+
+    if (check.status === "restricted") {
+      await bot.restrictChatMember(msg.chat.id, userId, {
+        until_date: 0,
+        permissions: {
+          can_send_messages: true,
+          can_send_media_messages: true,
+          can_send_other_messages: true,
+          can_add_web_page_previews: true
+        }
+      });
+    }
 
     await bot.sendMessage(msg.chat.id, "🔊 Usuario desmuteado correctamente");
 
