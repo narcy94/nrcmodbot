@@ -123,18 +123,14 @@ bot.on("message", async (msg) => {
 
     await bot.sendMessage(
       GROUP_ID,
-`🎉 Bienvenid@ a TechnNL Mods ⚙️
+`Bienvenid@ a Ͳ𝚎𝚌𝚑𝚗𝙽𝙻 𝙼𝙾𝙳𝚂 📱
 👤 Nombre : <a href="tg://user?id=${user.id}">${fullName}</a>
 ${usernameLine}
 👤 ID : ${user.id}
 📑 Fecha : ${fecha}
 🕘 Hora : ${hora}
 
-📌 Reglas:
-1️⃣ Respeto
-2️⃣ No Spam
-3️⃣ No enlaces de otros grupos
-4️⃣ ✅ Preguntar de manera cortés y amable.<a href="https://lnk.ua/RVd5836N3">&#8203;</a>`,
+📌 Revisa /reglas para conocer las normas del grupo<a href="https://lnk.ua/RVd5836N3">&#8203;</a>`,
       {
         parse_mode: "HTML",
         disable_web_page_preview: false,
