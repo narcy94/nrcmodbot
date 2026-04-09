@@ -230,93 +230,6 @@ bot.on("message", async (msg) => {
 });
 
 /* =========================
-   🔇 /mute
-========================= */
-
-bot.onText(/\/mute/, async (msg) => {
-
-  if (!msg.reply_to_message) {
-    return bot.sendMessage(msg.chat.id, "❌ Responde al mensaje del usuario");
-  }
-
-  let isAdmin = false;
-
-  if (msg.sender_chat) {
-    isAdmin = true;
-  } else if (msg.from) {
-    const admin = await bot.getChatMember(msg.chat.id, msg.from.id);
-    isAdmin = admin.status === "administrator" || admin.status === "creator";
-  }
-
-  if (!isAdmin) {
-    return bot.sendMessage(msg.chat.id, "❌ Solo admins pueden usar este comando");
-  }
-
-  const userId = msg.reply_to_message.from?.id;
-
-  try {
-
-    const target = await bot.getChatMember(msg.chat.id, userId);
-
-    if (target.status === "administrator" || target.status === "creator") {
-      return bot.sendMessage(msg.chat.id, "❌ No puedes mutear a un admin");
-    }
-
-    const until = Math.floor(Date.now() / 1000) + (24 * 60 * 60);
-
-    await bot.restrictChatMember(msg.chat.id, userId, {
-      until_date: until,
-      permissions: { can_send_messages: false }
-    });
-
-    await bot.sendMessage(msg.chat.id, "🔇 Usuario silenciado por 24 horas");
-
-  } catch (err) {
-    console.log(err);
-    bot.sendMessage(msg.chat.id, "❌ Error al mutear");
-  }
-
-});
-
-/* =========================
-   🔊 /unmute (FIX DEFINITIVO)
-========================= */
-
-bot.onText(/\/unmute/, async (msg) => {
-
-  if (!msg.reply_to_message) {
-    return bot.sendMessage(msg.chat.id, "❌ Responde al mensaje del usuario");
-  }
-
-  let isAdmin = false;
-
-  if (msg.sender_chat) {
-    isAdmin = true;
-  } else if (msg.from) {
-    const admin = await bot.getChatMember(msg.chat.id, msg.from.id);
-    isAdmin = admin.status === "administrator" || admin.status === "creator";
-  }
-
-  if (!isAdmin) {
-    return bot.sendMessage(msg.chat.id, "❌ Solo admins pueden usar este comando");
-  }
-
-  const userId = msg.reply_to_message.from.id;
-
-  try {
-    // 🔥 Reset total: elimina cualquier restricción/mute persistente
-    await bot.banChatMember(msg.chat.id, userId, { revoke_messages: false });
-    await bot.unbanChatMember(msg.chat.id, userId, { only_if_banned: true });
-
-    await bot.sendMessage(msg.chat.id, "🔊 Usuario desmuteado correctamente");
-  } catch (err) {
-    console.log(err);
-    bot.sendMessage(msg.chat.id, "❌ Error al desmutear");
-  }
-
-});
-
-/* =========================
    🌒 MODO NOCHE AUTOMÁTICO
 ========================= */
 
@@ -363,4 +276,3 @@ El grupo entra en descanso nocturno.
 }, 60000);
 
 console.log("Bot running...");
-   
